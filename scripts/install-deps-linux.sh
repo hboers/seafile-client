@@ -1,8 +1,11 @@
 #!/bin/bash
 set -x
 
+sudo add-apt-repository -y ppa:george-edison55/cmake-precise
+sudo add-apt-repository -y ppa:beineri/opt-qt54
 sudo apt-get update -qq
-sudo apt-get install -qq valac uuid-dev libevent-dev libjansson-dev libqt4-dev
+sudo apt-get install -qq valac uuid-dev libevent-dev re2c libjansson-dev cmake libqt4-dev
+sudo apt-get install -qq qt54base qt54translations qt54tools qt54webkit
 
 git clone --depth=1 --branch=master git://github.com/haiwen/libsearpc.git deps/libsearpc
 git clone --depth=1 --branch=master git://github.com/haiwen/ccnet.git deps/ccnet
