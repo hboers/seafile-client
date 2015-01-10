@@ -31,7 +31,6 @@ extern "C" {
 #include "traynotificationmanager.h"
 // QT's platform apis
 // http://qt-project.org/doc/qt-4.8/exportedfunctions.html
-extern void qt_mac_set_native_menubar(bool enable);
 extern void qt_mac_set_dock_menu(QMenu *menu);
 #endif
 
@@ -198,14 +197,19 @@ void SeafileTrayIcon::createGlobalMenuBar()
     global_menu_->addSeparator();
     global_menu_->addAction(enable_auto_sync_action_);
     global_menu_->addAction(disable_auto_sync_action_);
-    connect(global_menu_, SIGNAL(aboutToShow()), this, SLOT(prepareContextMenu()));
 
     global_menubar_ = new QMenuBar(0);
-    global_menubar_->setNativeMenuBar(true);
     global_menubar_->addMenu(global_menu_);
-    global_menubar_->addMenu(help_menu_);
-    qt_mac_set_native_menubar(true);
-    qt_mac_set_dock_menu(global_menu_);
+    // TODO fix the line below which crashes under qt5.4.0
+    //global_menubar_->addMenu(help_menu_);
+    global_menubar_->setNativeMenuBar(true);
+    qApp->setAttribute(Qt::AA_DontUseNativeMenuBar, false);
+
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 2, 0))
+    global_menu_->setAsDockMenu(); // available after qt5.2.0
+#else
+    qt_mac_set_dock_menu(global_menu_); // deprecated in latest qt
+#endif
     // create QMenuBar that has no parent, so we can share the global menubar
 #endif // Q_OS_MAC
 }

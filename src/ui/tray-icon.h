@@ -68,6 +68,7 @@ private:
     QMenu *context_menu_;
     QMenu *help_menu_;
     QMenu *global_menu_;
+    QMenu *dock_menu_;
     QMenuBar *global_menubar_;
 
     // Actions for tray icon menu
