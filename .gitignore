@@ -72,6 +72,8 @@ Release
 seafile-client.xcodeproj
 CMakeScripts
 seafile-applet.app
+seafile-client-fsplugin.xcodeproj
+seafile-client-fsplugin.appex
 
 ## unittest related
 test_*

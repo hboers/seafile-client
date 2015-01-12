@@ -2,6 +2,7 @@
 
 #include <Cocoa/Cocoa.h>
 #include <AvailabilityMacros.h>
+#include <xpc/connection.h>
 #include <QString>
 
 #if !__has_feature(objc_arc)
@@ -12,6 +13,8 @@
 #ifndef MAC_OS_X_VERSION_10_10
 #define MAC_OS_X_VERSION_10_10      101000
 #endif
+
+#define kFSpluginBundleId "com.seafile.seafile-client.fsplugin"
 
 namespace utils {
 namespace mac {
@@ -169,6 +172,50 @@ void set_auto_start(bool enabled)
     }
 }
 
+void setSeafileDirectoryForFSplugin(const QString &path) {
+    NSUserDefaults *sharedDefaults = [[NSUserDefaults alloc] initWithSuiteName:@kFSpluginBundleId];
+    NSString *filePath = [NSString stringWithCString:path.toUtf8().data()
+                                    encoding:NSUTF8StringEncoding];
+    NSURL *seafielDirectory = [NSURL fileURLWithPath:filePath isDirectory: TRUE];
+    [sharedDefaults setURL: seafielDirectory forKey: @"SeafileDirectory"];
+}
+
+static xpc_connection_t fsplugin_connection;
+static bool fsplugin_is_connected = false;
+void startFSplugin() {
+    if (!fsplugin_is_connected) {
+        fsplugin_connection = xpc_connection_create(kFSpluginBundleId, NULL);
+
+        xpc_connection_set_event_handler(fsplugin_connection,
+                                         ^(xpc_object_t event) {
+            xpc_type_t type = xpc_get_type(event);
+
+            if (type == XPC_TYPE_ERROR) {
+                if (event == XPC_ERROR_CONNECTION_INTERRUPTED) {
+                }
+
+                else if (event == XPC_ERROR_CONNECTION_INVALID) {
+                    NSLog(@"connection invalid");
+                    fsplugin_connection = nil;
+                    fsplugin_is_connected = false;
+                }
+
+                else {
+                    NSLog(@"Unknown XPC error.");
+                }
+            }
+        });
+        fsplugin_is_connected = true;
+        xpc_connection_resume(fsplugin_connection);
+    }
+}
+
+void stopFSplugin() {
+    if (fsplugin_is_connected) {
+        fsplugin_is_connected = false;
+        xpc_connection_cancel(fsplugin_connection);
+    }
+}
 
 } // namespace mac
 } // namespace utils
